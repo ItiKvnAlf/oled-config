@@ -211,8 +211,13 @@ echo "Disabling both services..."
 sudo systemctl disable $SERVICE_MH --now
 sudo systemctl disable $SERVICE_DB --now
 
-# Enable and start the selected service
-SELECTED_SERVICE="oled-$MODE"
+# Set the selected mode
+if [[ "$MODE" == "db" ]]; then
+  SELECTED_SERVICE="oled-daughterbox"
+elif [[ "$MODE" == "mh" ]]; then
+  SELECTED_SERVICE="oled-motherhub"
+fi
+
 echo "Enabling and starting $SELECTED_SERVICE service..."
 sudo systemctl enable $SELECTED_SERVICE --now
 
