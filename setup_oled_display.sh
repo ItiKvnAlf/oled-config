@@ -3,7 +3,7 @@
 # Variables
 MIN_MAJOR_PYTHON_VERSION=3
 MIN_MINOR_PYTHON_VERSION=7
-VENV_DIR="venv"  # Directorio para el entorno virtual
+VENV_DIR=venv  # Virtual environment directory
 
 # Get the current Python version
 get_python_version() {
@@ -71,19 +71,41 @@ set_up_raspi_config() {
     sudo raspi-config nonint disable_raspi_config_at_boot 0
 }
 
-# Function to create and activate a virtual environment
-create_virtualenv() {
+# Function to create and activate a virtual environment for DAUGHTER BOX
+create_virtualenv_db() {
     #This function creates and activates a Python virtual environment.
-    if [ ! -d "$VENV_DIR" ]; then
-        echo "Creating virtual environment in $VENV_DIR..."
-        python3 -m venv $VENV_DIR
+    if [ ! -d "oled-daughterbox/$VENV_DIR" ]; then
+        echo "Creating virtual environment in oled-daughterbox/$VENV_DIR..."
+        python3 -m venv oled-daughterbox/$VENV_DIR
     else
-        echo "Virtual environment already exists in $VENV_DIR."
+        echo "Virtual environment already exists in oled-daughterbox/$VENV_DIR."
     fi
 
     # Activate the virtual environment
-    source $VENV_DIR/bin/activate
+    source oled-daughterbox/$VENV_DIR/bin/activate
     echo "Virtual environment activated."
+}
+
+# Function to create and activate a virtual environment for MOTHER HUB
+create_virtualenv_mh() {
+    #This function creates and activates a Python virtual environment.
+    if [ ! -d "oled-motherhub/$VENV_DIR" ]; then
+        echo "Creating virtual environment in oled-motherhub/$VENV_DIR..."
+        python3 -m venv oled-motherhub/$VENV_DIR
+    else
+        echo "Virtual environment already exists in oled-motherhub/$VENV_DIR."
+    fi
+
+    # Activate the virtual environment
+    source oled-motherhub/$VENV_DIR/bin/activate
+    echo "Virtual environment activated."
+}
+
+# Function to deactivate the virtual environment
+deactivate_virtualenv() {
+    #This function deactivates the Python virtual environment.
+    deactivate
+    echo "Virtual environment deactivated."
 }
 
 # Function to install Blinka
@@ -138,11 +160,11 @@ check_python_version
 # Install pip
 install_pip
 
-# Create and activate a virtual environment
-create_virtualenv 
-
 # Set up raspi-config
 set_up_raspi_config
+
+# Create and activate a virtual environment for DAUGHTER BOX
+create_virtualenv_db
 
 # Install Blinka
 install_blinka
@@ -155,6 +177,28 @@ install_psutil
 
 # Install Adafruit CircuitPython SSD1306
 install_circuitpython_ssd1306
+
+# Deactivate the virtual environment
+deactivate_virtualenv
+
+# Create and activate a virtual environment for MOTHER HUB
+create_virtualenv_mh
+
+# Install Blinka
+install_blinka
+
+# Install Pil
+install_pillow
+
+# Install Psutil
+install_psutil
+
+# Install Adafruit CircuitPython SSD1306
+install_circuitpython_ssd1306
+
+# Deactivate the virtual environment
+deactivate_virtualenv
+
 
 echo "Configuration complete."
 echo "Now proceeding to the service configuration for the OLED display."
