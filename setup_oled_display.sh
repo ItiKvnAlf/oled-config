@@ -132,15 +132,29 @@ install_psutil() {
     fi
 }
 
-# Main script execution
+# Check the Python version
 check_python_version
+
+# Install pip
 install_pip
+
+# Create and activate a virtual environment
 create_virtualenv 
-install_blinka
-install_circuitpython_ssd1306
-install_pillow
-install_psutil
+
+# Set up raspi-config
 set_up_raspi_config
+
+# Install Blinka
+install_blinka
+
+# Install Pil
+install_pillow
+
+# Install Psutil
+install_psutil
+
+# Install Adafruit CircuitPython SSD1306
+install_circuitpython_ssd1306
 
 echo "Configuration complete."
 echo "Now proceeding to the service configuration for the OLED display."
