@@ -17,8 +17,9 @@ get_python_version() {
 check_python_version() {
     #This function checks the Python version and prompts the user to install the required version or exit.
     get_python_version
-    if (( python_major_version >= MIN_MAJOR_PYTHON_VERSION && python_minor_version >= $MIN_PYTHON_VERSION )); then
-        echo "Sufficient Python version: $python_version"
+    if (( python_major_version > MIN_MAJOR_PYTHON_VERSION || 
+          (python_major_version == MIN_MAJOR_PYTHON_VERSION && python_minor_version >= MIN_MINOR_PYTHON_VERSION) )); then
+        echo "Python version is sufficient."
     else
         echo "Python version is $python_version. Python 3.7+ is required."
         read -p "Do you want to install the required Python version? [Y/n]: " user_choice
@@ -72,50 +73,29 @@ set_up_raspi_config() {
 }
 
 # Function to create and activate a virtual environment for DAUGHTER BOX
-create_virtualenv_db() {
+create_virtualenv() {
     #This function creates and activates a Python virtual environment.
-    if [ ! -d "oled-daughterbox/$VENV_DIR" ]; then
-        echo "Creating virtual environment in oled-daughterbox/$VENV_DIR..."
-        python3 -m venv oled-daughterbox/$VENV_DIR
+    if [ ! -d "$VENV_DIR" ]; then
+        echo "Creating virtual environment in $VENV_DIR..."
+        python3 -m venv $VENV_DIR
     else
-        echo "Virtual environment already exists in oled-daughterbox/$VENV_DIR."
+        echo "Virtual environment already exists in $VENV_DIR."
     fi
 
     # Activate the virtual environment
-    source oled-daughterbox/$VENV_DIR/bin/activate
+    source $VENV_DIR/bin/activate
     echo "Virtual environment activated."
 }
 
-# Function to create and activate a virtual environment for MOTHER HUB
-create_virtualenv_mh() {
-    #This function creates and activates a Python virtual environment.
-    if [ ! -d "oled-motherhub/$VENV_DIR" ]; then
-        echo "Creating virtual environment in oled-motherhub/$VENV_DIR..."
-        python3 -m venv oled-motherhub/$VENV_DIR
-    else
-        echo "Virtual environment already exists in oled-motherhub/$VENV_DIR."
-    fi
-
-    # Activate the virtual environment
-    source oled-motherhub/$VENV_DIR/bin/activate
-    echo "Virtual environment activated."
-}
-
-# Function to deactivate the virtual environment
-deactivate_virtualenv() {
-    #This function deactivates the Python virtual environment.
-    deactivate
-    echo "Virtual environment deactivated."
-}
 
 # Function to install Blinka
 install_blinka() {
     #This function installs Blinka, which is Adafruit's CircuitPython library.
     if ! python3 -c "import board" &> /dev/null; then
         echo "Installing Blinka and dependencies..."
-        pip install --upgrade i2c-tools libgpiod-dev python3-libgpiod
-        pip install --upgrade RPi.GPIO
-        pip install --upgrade adafruit-blinka
+        sudo apt-get install -y i2c-tools libgpiod-dev python3-libgpiod
+        pip install RPi.GPIO
+        pip install adafruit-blinka
     else
         echo "Blinka is already installed."
     fi
@@ -126,7 +106,7 @@ install_circuitpython_ssd1306() {
     #This function installs the Adafruit CircuitPython SSD1306 library.
     if ! python3 -c "import adafruit_ssd1306" &> /dev/null; then
         echo "Installing Adafruit CircuitPython SSD1306..."
-        pip install --upgrade adafruit-circuitpython-ssd1306
+        pip install adafruit-circuitpython-ssd1306
     else
         echo "Adafruit CircuitPython SSD1306 is already installed."
     fi
@@ -136,10 +116,10 @@ install_circuitpython_ssd1306() {
 install_pillow() {
     #This function installs the Pillow library.
     if ! python3 -c "import PIL" &> /dev/null; then
-        echo "Installing Pillow (PIL)..."
-        pip install --upgrade pillow
+        echo "Installing Pil..."
+        sudo apt-get install -y python3-pil
     else
-        echo "Pillow (PIL) is already installed."
+        echo "Pil is already installed."
     fi
 }
 
@@ -148,7 +128,7 @@ install_psutil() {
     #This function installs the Psutil library.
     if ! python3 -c "import psutil" &> /dev/null; then
         echo "Installing Psutil..."
-        pip install --upgrade psutil
+        sudo apt-get install -y python3-psutil
     else
         echo "Psutil is already installed."
     fi
@@ -164,7 +144,7 @@ install_pip
 set_up_raspi_config
 
 # Create and activate a virtual environment for DAUGHTER BOX
-create_virtualenv_db
+create_virtualenv
 
 # Install Blinka
 install_blinka
@@ -177,28 +157,6 @@ install_psutil
 
 # Install Adafruit CircuitPython SSD1306
 install_circuitpython_ssd1306
-
-# Deactivate the virtual environment
-deactivate_virtualenv
-
-# Create and activate a virtual environment for MOTHER HUB
-create_virtualenv_mh
-
-# Install Blinka
-install_blinka
-
-# Install Pil
-install_pillow
-
-# Install Psutil
-install_psutil
-
-# Install Adafruit CircuitPython SSD1306
-install_circuitpython_ssd1306
-
-# Deactivate the virtual environment
-deactivate_virtualenv
-
 
 echo "Configuration complete."
 echo "Now proceeding to the service configuration for the OLED display."
@@ -241,8 +199,9 @@ After=network-online.target multi-user.target
 Wants=network-online.target
 
 [Service]
-ExecStart=$PYTHON_PATH $PYTHON_SCRIPT
+ExecStart=$(realpath $VENV_DIR/bin/python) $PYTHON_SCRIPT
 WorkingDirectory=$(dirname $PYTHON_SCRIPT)
+Environment="PATH=$(realpath $VENV_DIR/bin)"
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
