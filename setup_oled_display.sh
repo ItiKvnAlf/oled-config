@@ -5,44 +5,6 @@ MIN_MAJOR_PYTHON_VERSION=3
 MIN_MINOR_PYTHON_VERSION=7
 VENV_DIR=venv  # Virtual environment directory
 
-# Get the current Python version
-get_python_version() {
-    #This function gets the Python version and sets the major and minor version
-    python_version=$(python3 -c 'import platform; print(platform.python_version())')
-    python_major_version=$(echo $python_version | cut -d. -f1)
-    python_minor_version=$(echo $python_version | cut -d. -f2)
-}
-
-# Function to check the Python version
-check_python_version() {
-    #This function checks the Python version and prompts the user to install the required version or exit.
-    get_python_version
-    if (( python_major_version > MIN_MAJOR_PYTHON_VERSION || 
-          (python_major_version == MIN_MAJOR_PYTHON_VERSION && python_minor_version >= MIN_MINOR_PYTHON_VERSION) )); then
-        echo "Python version is sufficient."
-    else
-        echo "Python version is $python_version. Python 3.7+ is required."
-        read -p "Do you want to install the required Python version? [Y/n]: " user_choice
-        user_choice=${user_choice:-Y}
-        if [[ "$user_choice" =~ ^[Yy]$ ]]; then
-            install_python
-        else
-            echo "Exiting the program."
-            exit 1
-        fi
-    fi
-}
-
-# Function to install Python 3.7
-install_python() {
-    #This function installs Python 3.7 if the user chooses to install it.
-    echo "Installing Python 3.7+..."
-    sudo apt-get update --allow-releaseinfo-change
-    sudo apt-get install -y python3 python3-pip python3-setuptools
-    sudo update-alternatives --install /usr/bin/python python $(which python3) 2
-    sudo update-alternatives --config python <<< "2"
-}
-
 # Function to install pip
 install_pip() {
     #This function installs pip if it is not already installed.
@@ -133,9 +95,6 @@ install_psutil() {
         echo "Psutil is already installed."
     fi
 }
-
-# Check the Python version
-check_python_version
 
 # Install pip
 install_pip
