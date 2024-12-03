@@ -65,7 +65,8 @@ install_blinka() {
     fi
 }
 
-  () {
+# Function to install libgpiod
+install_libgpiod() {
     #This function installs the libgpiod library.
     if ! python3 -c "import gpiod" &> /dev/null; then
         echo "Installing libgpiod..."
@@ -116,6 +117,9 @@ set_up_raspi_config
 
 # Create and activate a virtual environment for DAUGHTER BOX
 create_virtualenv
+
+# Install libgpiod
+install_libgpiod
 
 # Install Blinka
 install_blinka
