@@ -222,3 +222,13 @@ echo "Enabling and starting $SELECTED_SERVICE service..."
 sudo systemctl enable $SELECTED_SERVICE --now
 
 echo "Service configuration completed successfully."
+
+# Reboot the system
+read -p "Do you want to reboot the system now? [Y/n]: " user_choice
+user_choice=${user_choice:-Y}
+if [[ "$user_choice" =~ ^[Yy]$ ]]; then
+    echo "Rebooting the system..."
+    sudo reboot
+else
+    echo "Please reboot the system to apply the changes."
+fi
