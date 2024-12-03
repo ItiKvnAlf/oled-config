@@ -47,7 +47,7 @@ create_virtualenv() {
     fi
 
     # Activate the virtual environment
-    source $VENV_DIR/bin/activate
+    source $FULL_DIR/bin/activate
     echo "Virtual environment activated."
 }
 
