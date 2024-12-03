@@ -5,6 +5,7 @@ MIN_MAJOR_PYTHON_VERSION=3
 MIN_MINOR_PYTHON_VERSION=7
 VENV_DIR=venv  # Virtual environment directory
 PI_USER=capstone
+FULL_DIR="/home/$PI_USER/$VENV_DIR"
 
 # Function to install pip
 install_pip() {
@@ -38,7 +39,6 @@ set_up_raspi_config() {
 # Function to create and activate a virtual environment for DAUGHTER BOX
 create_virtualenv() {
     #This function creates and activates a Python virtual environment.
-    FULL_DIR="/home/$PI_USER/$VENV_DIR"
     if [ ! -d "$FULL_DIR" ]; then
         echo "Creating virtual environment in $FULL_DIR..."
         python3 -m venv $FULL_DIR
@@ -160,9 +160,9 @@ After=network-online.target multi-user.target
 Wants=network-online.target
 
 [Service]
-ExecStart=$(realpath $VENV_DIR/bin/python) $PYTHON_SCRIPT
+ExecStart=$(realpath $FULL_DIR/bin/python) $PYTHON_SCRIPT
 WorkingDirectory=$(dirname $PYTHON_SCRIPT)
-Environment="PATH=$(realpath $VENV_DIR/bin)"
+Environment="PATH=$(realpath $FULL_DIR/bin)"
 StandardOutput=inherit
 StandardError=inherit
 Restart=always
