@@ -145,27 +145,38 @@ set_up_raspi_config
 echo "Configuration complete."
 echo "Now proceeding to the service configuration for the OLED display."
 
+# Prompt for the username and mode
 read -p "Enter the username of the system (e.g., pi): " USERNAME
-read -p "Enter the mode of the device (mh / db): " MODE
+read -p "Enter the mode of the device (mh/db): " MODE
 
-MODE="${MODE}_oled_display"
-
-# Set up variables
-PYTHON_SCRIPT="/home/$USERNAME/oled_cpl/$MODE/main.py"
-GROUPNAME=$USERNAME
-PYTHON_PATH=$(which python3)
-SERVICE_FILE="/etc/systemd/system/oled_display.service"
-
-# Check if the Python script exists
-if [ ! -f "$PYTHON_SCRIPT" ]; then
-    echo "Python script $PYTHON_SCRIPT not found. Make sure the script exists and try again."
+# Validate the selected mode
+if [[ "$MODE" != "mh" && "$MODE" != "db" ]]; then
+    echo "Invalid mode. Please enter 'mh' for Mother Hub or 'db' for Daughter Box."
     exit 1
 fi
 
-# Create the systemd service file
-echo "Creating the service file at $SERVICE_FILE..."
+# Define service names and paths
+SERVICE_MH="oled-motherhub"
+SERVICE_DB="oled-daughterbox"
+PYTHON_SCRIPT_MH="/home/$USERNAME/$SERVICE_MH/main.py"
+PYTHON_SCRIPT_DB="/home/$USERNAME/$SERVICE_DB/main.py"
+PYTHON_PATH=$(which python3)
+SERVICE_FILE_MH="/etc/systemd/system/$SERVICE_MH.service"
+SERVICE_FILE_DB="/etc/systemd/system/$SERVICE_DB.service"
 
-sudo bash -c "cat > $SERVICE_FILE" <<EOL
+# Function to create a service file
+create_service_file() {
+    local SERVICE_NAME=$1
+    local PYTHON_SCRIPT=$2
+    local SERVICE_FILE=$3
+
+    if [ ! -f "$PYTHON_SCRIPT" ]; then
+        echo "Python script $PYTHON_SCRIPT not found. Make sure the script exists and try again."
+        exit 1
+    fi
+
+    echo "Creating the service file at $SERVICE_FILE..."
+    sudo bash -c "cat > $SERVICE_FILE" <<EOL
 [Unit]
 Description=$SERVICE_NAME - Service for OLED Display
 After=network-online.target multi-user.target
@@ -182,28 +193,27 @@ Restart=always
 WantedBy=multi-user.target
 EOL
 
-# Set correct permissions for the service file
-sudo chmod 644 $SERVICE_FILE
-sudo chown root:root $SERVICE_FILE
+    sudo chmod 644 $SERVICE_FILE
+    sudo chown root:root $SERVICE_FILE
+    echo "Service file $SERVICE_FILE created successfully."
+}
 
-# Reload systemd to recognize the new service
+# Create both service files
+create_service_file "$SERVICE_MH" "$PYTHON_SCRIPT_MH" "$SERVICE_FILE_MH"
+create_service_file "$SERVICE_DB" "$PYTHON_SCRIPT_DB" "$SERVICE_FILE_DB"
+
+# Reload systemd to recognize new services
 echo "Reloading systemd daemon..."
 sudo systemctl daemon-reload
 
-# Enable the service to start on boot
-echo "Enabling $SERVICE_NAME service..."
-sudo systemctl enable $SERVICE_NAME
+# Disable both services initially
+echo "Disabling both services..."
+sudo systemctl disable $SERVICE_MH --now
+sudo systemctl disable $SERVICE_DB --now
 
-# Start the service immediately
-echo "Starting $SERVICE_NAME service..."
-sudo systemctl start $SERVICE_NAME
+# Enable and start the selected service
+SELECTED_SERVICE="oled-$MODE"
+echo "Enabling and starting $SELECTED_SERVICE service..."
+sudo systemctl enable $SELECTED_SERVICE --now
 
-# Check the service status
-echo "Checking $SERVICE_NAME service status..."
-sudo systemctl status $SERVICE_NAME
-
-echo "Service configuration complete."
-
-echo "Rebooting the system to apply changes..."
-sudo reboot
-
+echo "Service configuration completed successfully."
