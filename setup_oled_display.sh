@@ -65,6 +65,16 @@ install_blinka() {
     fi
 }
 
+  () {
+    #This function installs the libgpiod library.
+    if ! python3 -c "import gpiod" &> /dev/null; then
+        echo "Installing libgpiod..."
+        pip install libgpiod
+    else
+        echo "libgpiod is already installed."
+    fi
+}
+
 # Function to install Adafruit CircuitPython SSD1306
 install_circuitpython_ssd1306() {
     #This function installs the Adafruit CircuitPython SSD1306 library.
@@ -81,7 +91,7 @@ install_pillow() {
     #This function installs the Pillow library.
     if ! python3 -c "import PIL" &> /dev/null; then
         echo "Installing Pil..."
-        sudo apt-get install -y python3-pil
+        pip install pillow
     else
         echo "Pil is already installed."
     fi
@@ -92,7 +102,7 @@ install_psutil() {
     #This function installs the Psutil library.
     if ! python3 -c "import psutil" &> /dev/null; then
         echo "Installing Psutil..."
-        sudo apt-get install -y python3-psutil
+        pip install psutil
     else
         echo "Psutil is already installed."
     fi
@@ -160,12 +170,8 @@ After=network-online.target multi-user.target
 Wants=network-online.target
 
 [Service]
-ExecStart=$(realpath $FULL_DIR/bin/python) $PYTHON_SCRIPT
+ExecStart=/bin/bash -c '$(realpath $FULL_DIR/bin/activate) python3 $PYTHON_SCRIPT'
 WorkingDirectory=$(dirname $PYTHON_SCRIPT)
-Environment="PATH=$(realpath $FULL_DIR/bin)"
-StandardOutput=inherit
-StandardError=inherit
-Restart=always
 
 [Install]
 WantedBy=multi-user.target
